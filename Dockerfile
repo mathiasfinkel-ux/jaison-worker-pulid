@@ -6,6 +6,6 @@ RUN cd /comfyui/custom_nodes && \
     pip install --no-cache-dir --timeout=120 --retries=10 facenet-pytorch --no-deps && \
     rm -rf /root/.cache /tmp/*
 
-RUN python3 -c "import re; p='/comfyui/custom_nodes/ComfyUI_PuLID_Flux_ll/PulidFluxHook.py'; s=open(p).read(); s=re.sub(r'(def pulid_forward_orig\([^)]*)\)', r'\1, **kwargs)', s, 1); open(p,'w').write(s)"
+RUN printf '\n_pulid_orig_fwd = pulid_forward_orig\ndef pulid_forward_orig(*args, **kwargs):\n    kwargs.pop("timestep_zero_index", None)\n    return _pulid_orig_fwd(*args, **kwargs)\n' >> /comfyui/custom_nodes/ComfyUI_PuLID_Flux_ll/PulidFluxHook.py
 
 RUN printf 'comfyui:\n  base_path: /runpod-volume/models/\n  checkpoints: diffusion_models/\n  vae: vae/\n  clip: clip/\n  text_encoders: clip/\n  clip_vision: clip_vision/\n  unet: diffusion_models/\n  diffusion_models: diffusion_models/\n  loras: loras/\n  controlnet: controlnet/\n  upscale_models: upscale_models/\n  embeddings: embeddings/\n  pulid: pulid/\n  insightface: insightface/\n  facexlib: facexlib/\n' > /comfyui/extra_model_paths.yaml
